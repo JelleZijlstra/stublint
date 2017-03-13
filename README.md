@@ -22,5 +22,10 @@ Python stub files. It is intended for use on [typeshed](http://www.github.com/py
 `stublint` currently checks for the following:
 - Function bodies must be empty (allowed self assignments and raise for now)
 - Strict constraints on sys.version_info and sys.platform checks.
+- TypeVars defined in stub modules must be private to the module.
+
+In strict mode (using the `--strict` argument to stublint), the following are also enabled:
+- All arguments must have a type annotations.
+- All functions must have a return type annotation.
 
 Much more can be added.

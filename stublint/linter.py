@@ -1,8 +1,8 @@
 """Linter implementation, containing the lint rules.
 
 Ideas for things to add:
-- default argument must be ...
-- all return and argument types must be given (probably will require a lot of changes in typeshed)
+- Type aliases should be private
+- Union returns should be discouraged (strict mode?)
 
 """
 
