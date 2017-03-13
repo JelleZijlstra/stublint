@@ -19,7 +19,7 @@ classifiers = [
 
 setup(name='stublint',
       version='0.0',
-      description='Linter for pyi files, inteded for use in typeshed',
+      description='Linter for pyi files, intended for use in typeshed',
       author='Jelle Zijlstra',
       author_email='jelle.zijlstra@gmail.com',
       url='https://www.github.com/JelleZijlstra/stublint',
