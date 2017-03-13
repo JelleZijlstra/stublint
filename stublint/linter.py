@@ -25,10 +25,6 @@ class LintVisitor(ast.NodeVisitor):
     def visit_arguments(self, node: ast.arguments) -> None:
         self.generic_visit(node)
         if self.strict:
-            for default in node.kw_defaults + node.defaults:
-                if not isinstance(default, ast.Ellipsis) and default is not None:
-                    self.error(default, 'default value must be ... in a stub')
-
             def get_args() -> Iterable[ast.arg]:
                 if node.args:
                     if node.args[0].arg not in ('self', 'cls'):
