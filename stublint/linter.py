@@ -29,6 +29,18 @@ class LintVisitor(ast.NodeVisitor):
                 if not isinstance(default, ast.Ellipsis) and default is not None:
                     self.error(default, 'default value must be ... in a stub')
 
+    def visit_Assign(self, node: ast.Assign) -> None:
+        self.generic_visit(node)
+        # attempt to find assignments to type helpers (typevars and aliases), which should be private
+        if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == 'TypeVar':
+            for target in node.targets:
+                if not isinstance(target, ast.Name):
+                    self.error(target, 'TypeVar must be assigned to a name')
+                elif not target.id.startswith('_'):
+                    # avoid catching AnyStr in typing
+                    if self.filename.name != 'typing.pyi':
+                        self.error(target, 'Name of private TypeVar must start with _')
+
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self.generic_visit(node)
         for i, statement in enumerate(node.body):
