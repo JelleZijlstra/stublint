@@ -9,7 +9,7 @@ Ideas for things to add:
 import ast
 from pathlib import Path
 import sys
-from typing import Optional
+from typing import Iterable, Optional
 
 _MUST_HAVE_SYS = 'Conditional expression must have sys.version_info or sys.platform as its left operand'
 _BAD_VERSION_SLICE = 'Unrecognized sys.version_info subscript'
@@ -29,6 +29,21 @@ class LintVisitor(ast.NodeVisitor):
                 if not isinstance(default, ast.Ellipsis) and default is not None:
                     self.error(default, 'default value must be ... in a stub')
 
+            def get_args() -> Iterable[ast.arg]:
+                if node.args:
+                    if node.args[0].arg not in ('self', 'cls'):
+                        yield node.args[0]
+                    yield from node.args[1:]
+                if node.vararg is not None:
+                    yield node.vararg
+                yield from node.kwonlyargs
+                if node.kwarg is not None:
+                    yield node.kwarg
+
+            for arg in get_args():
+                if arg.annotation is None:
+                    self.error(arg, 'Argument is missing a type annotation')
+
     def visit_Assign(self, node: ast.Assign) -> None:
         self.generic_visit(node)
         # attempt to find assignments to type helpers (typevars and aliases), which should be private
@@ -43,6 +58,9 @@ class LintVisitor(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self.generic_visit(node)
+        if self.strict and node.returns is None:
+            self.error(node, 'Function is missing a return type annotation')
+
         for i, statement in enumerate(node.body):
             if i == 0:
                 # normally, the body will just be "pass" or "..."
