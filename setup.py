@@ -26,5 +26,5 @@ setup(name='stublint',
       license='PSF',
       keywords='typing function annotations type hints hinting checking '
                'checker typehints typehinting typechecking lint',
-      py_modules=['stublint'],
+      packages=['stublint'],
       classifiers=classifiers)
