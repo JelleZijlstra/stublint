@@ -17,9 +17,17 @@ _VERSION_COMPARE_NUMBER = 'sys.version_info comparison must be against an int or
 
 
 class LintVisitor(ast.NodeVisitor):
-    def __init__(self, filename: Path) -> None:
+    def __init__(self, filename: Path, strict: bool=False) -> None:
         self.saw_error = False
         self.filename = filename
+        self.strict = strict
+
+    def visit_arguments(self, node: ast.arguments) -> None:
+        self.generic_visit(node)
+        if self.strict:
+            for default in node.kw_defaults + node.defaults:
+                if not isinstance(default, ast.Ellipsis) and default is not None:
+                    self.error(default, 'default value must be ... in a stub')
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self.generic_visit(node)
