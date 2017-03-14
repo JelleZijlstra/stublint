@@ -24,21 +24,34 @@ class LintVisitor(ast.NodeVisitor):
 
     def visit_arguments(self, node: ast.arguments) -> None:
         self.generic_visit(node)
-        if self.strict:
-            def get_args() -> Iterable[ast.arg]:
-                if node.args:
-                    if node.args[0].arg not in ('self', 'cls'):
-                        yield node.args[0]
-                    yield from node.args[1:]
-                if node.vararg is not None:
-                    yield node.vararg
-                yield from node.kwonlyargs
-                if node.kwarg is not None:
-                    yield node.kwarg
 
-            for arg in get_args():
-                if arg.annotation is None:
-                    self.error(arg, 'Argument is missing a type annotation')
+        def get_args() -> Iterable[ast.arg]:
+            if node.args:
+                if node.args[0].arg not in ('self', 'cls'):
+                    yield node.args[0]
+                yield from node.args[1:]
+            # only check if *args and **kwargs have a type in strict mode; it's usually Any anyway
+            if node.vararg is not None and self.strict:
+                yield node.vararg
+            yield from node.kwonlyargs
+            if node.kwarg is not None and self.strict:
+                yield node.kwarg
+
+        have_anno = []
+        missing_anno = []
+        for arg in get_args():
+            if arg.annotation is None:
+                missing_anno.append(arg)
+            else:
+                have_anno.append(arg)
+
+        # in strict mode, complain about any missing annotation, but otherwise complain only if
+        # there are arguments with annotations (to catch cases where the author forgot to annotate
+        # a single argument)
+        if not self.strict and not have_anno:
+            return
+        for arg in missing_anno:
+            self.error(arg, 'Argument is missing a type annotation')
 
     def visit_Assign(self, node: ast.Assign) -> None:
         self.generic_visit(node)
